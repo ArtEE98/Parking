@@ -31,7 +31,7 @@ namespace BinaryStudio
         private static int parkingSpace = 5;
         public static int ParkingSpace
         {
-            get { return ParkingSpace; }
+            get { return parkingSpace; }
             set
             {
                 if (value > 0)

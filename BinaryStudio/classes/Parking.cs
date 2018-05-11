@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace BinaryStudio
@@ -16,16 +18,21 @@ namespace BinaryStudio
             return balance;
         }
 
-        private List<Car> cars;
+        private List<Car> cars = new List<Car>();
         public List<Car> Cars { get => cars; set => cars = value; }
 
-        private List<Transaction> transactions;
+        private List<Transaction> transactions = new List<Transaction>();
         public List<Transaction> Transactions { get => transactions; set => transactions = value; }
-
-     
 
         private Parking()
         {
+            Parking par = this;
+
+            TimerCallback t1 = new TimerCallback(CarsPay);
+            TimerCallback t2 = new TimerCallback(SaveTrancsactions);
+
+            Timer timer = new Timer(t1, par, 0, 2000);
+            Timer timer2 = new Timer(t2, par, 0, 6000);
         }
 
         public static Parking getParking()
@@ -104,10 +111,32 @@ namespace BinaryStudio
             return result;
         }
 
-        public static void CarsPay(Parking p, List<Car> cars)
+        public static void SaveTrancsactions(object obj)
+        {
+            Parking p = (Parking)obj;
+            double sum = 0;
+            if (p.transactions == null)
+                return;
+            foreach(var t in p.transactions)
+            {
+                if (t.Write_offs == null)
+                    continue;
+                foreach(var pair in t.Write_offs)
+                {
+                    sum += pair.Value;
+                }
+            }
+            p.transactions = new List<Transaction>();
+            Logger.Log.Info("Sum of transactions: " + sum);
+        }
+
+        public static void CarsPay(object obj)
         {
             Transaction t = new Transaction();
-            foreach(Car car in cars)
+            Parking p = (Parking)obj;
+            if (p.cars == null)
+                return;
+            foreach(Car car in p.cars)
             {
                 int pay = Settings.PricesDict[car.Type];
                 int paid = 0;
